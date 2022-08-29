@@ -30,7 +30,7 @@ To run the project on windows, Open the integrated terminal of VS Code and run t
 - Activate your environment : ***.\env\Scripts\activate</i>***  
 - Start the project : ***python manage.py runserver***
 
-## Run the project on Mac OS
-To run the project on windows, Open the integrated terminal of VS Code and run the following commands :
+## Run the project on MacOS
+To run the project on MacOS, Open the integrated terminal of VS Code and run the following commands :
 - Activate your environment : ***source env/bin/activate***
 - Start the project : ***python manage.py runserver***
