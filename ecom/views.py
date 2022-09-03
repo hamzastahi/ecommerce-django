@@ -5,7 +5,7 @@ from store.models import Product
 from . import urls
 
 def home(request):
-    products = Product.objects.all()
+    products = Product.objects.filter(is_available=True)
     context = {
         'products': products
     }
