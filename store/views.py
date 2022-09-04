@@ -7,8 +7,10 @@ def store(request, catslug=None):
         products = Product.objects.filter(category__slug=catslug)
     else:
         products = Product.objects.all()
+    product_count = products.count()
     context = {
-        'products': products
+        'products': products,
+        'product_count': product_count
     }
     return render(request, 'store/store.html', context)
 
