@@ -5,7 +5,7 @@ from django.http import HttpResponse
 
 
 # Create your views here.
-from store.models import Product
+from store.models import Product, Variation
 
 
 def get_session_key(request):
@@ -38,6 +38,15 @@ def cart(request):
   return render(request, 'store/cart.html', context)
 
 def add_to_cart(request, product_id):
+  if request.method == 'POST':
+    for item in request.POST:
+      if item != 'csrfmiddlewaretoken':
+        key = item
+        value = request.POST[item]
+
+        variation = Variation.objects.get(variation_category=key, variation_value=value)
+
+        print(variation.variation_category + ' : ' + variation.variation_value)
   product = Product.objects.get(id=product_id)
   try:
     cart = Cart.objects.get(cart_id=get_session_key(request))

@@ -16,7 +16,11 @@ def store(request, catslug=None):
 
 def product_details(request, catslug=None, product_slug=None):
     product = Product.objects.get(category__slug=catslug, slug=product_slug)
+    variations_color = product.variation_set.filter(variation_category="color")
+    variations_size = product.variation_set.filter(variation_category="size")
     context= {
-        'single_product': product
+        'single_product': product,
+        'variations_color': variations_color,
+        'variations_size' : variations_size
     }
     return render(request, 'store/product-details.html', context)
