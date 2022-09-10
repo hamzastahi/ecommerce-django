@@ -38,6 +38,7 @@ def cart(request):
   return render(request, 'store/cart.html', context)
 
 def add_to_cart(request, product_id):
+  product_variations = []
   if request.method == 'POST':
     for item in request.POST:
       if item != 'csrfmiddlewaretoken':
@@ -45,6 +46,8 @@ def add_to_cart(request, product_id):
         value = request.POST[item]
 
         variation = Variation.objects.get(variation_category=key, variation_value=value)
+        # 1/ ajouter les variations souhaités dans la cart qui concernent le produit selectionné
+        product_variations.append(variation)
 
         print(variation.variation_category + ' : ' + variation.variation_value)
   product = Product.objects.get(id=product_id)
@@ -55,21 +58,44 @@ def add_to_cart(request, product_id):
   cart.save()
 
   try:
-    cart_item = CartItem.objects.get(cart=cart, product=product)
-    cart_item.quantity += 1
+    # 2/ get all cart_items with same product
+    cart_items_for_same_product = CartItem.objects.filter(cart=cart, product=product)
+
+    #3/ ajouter toutes les variations d'un produit sur une liste
+    existing_variations_list = []
+    ids = []
+    for item in cart_items_for_same_product:
+      existing_vars = item.variations.all()
+      existing_variations_list.append(list(existing_vars))
+      ids.append(item.id)
+    
+    if product_variations in existing_variations_list:
+      index = existing_variations_list.index(product_variations)
+      item_id = ids[index]
+      cart_item = CartItem.objects.get(cart=cart, product=product, id=item_id)
+      cart_item.quantity += 1
+      cart_item.save()
+    else:
+      cart_item = CartItem.objects.create(cart=cart, product=product, quantity=1)
+      for var in product_variations:
+        cart_item.variations.add(var)
+      cart_item.save()
+
+    #cart_item.quantity += 1
   except CartItem.DoesNotExist:
     cart_item  = CartItem.objects.create(cart=cart, quantity=1, product=product)
-  cart_item.save()
-
+    for var in product_variations:
+      cart_item.variations.add(var)
+    cart_item.save()
   #return HttpResponse(str(cart_item.product.id) + " " + cart_item.product.product_name + " " +  str(cart_item.quantity))
 
   return redirect('cart')
 
-def decrement_from_cart(request, product_id):
+def decrement_from_cart(request, product_id, cart_id):
   product = Product.objects.get(id=product_id)
   try:
     cart = Cart.objects.get(cart_id=get_session_key(request))
-    cart_item = CartItem.objects.get(cart=cart, product=product)
+    cart_item = CartItem.objects.get(cart=cart, product=product, id=cart_id)
 
     if cart_item.quantity > 1:
       cart_item.quantity -= 1
@@ -81,11 +107,11 @@ def decrement_from_cart(request, product_id):
 
   return redirect('cart')
 
-def remove_from_cart(request, product_id):
+def remove_from_cart(request, product_id, cart_id):
   product = Product.objects.get(id=product_id)
   try:
     cart = Cart.objects.get(cart_id=get_session_key(request))
-    cart_item = CartItem.objects.get(cart=cart, product=product)
+    cart_item = CartItem.objects.get(cart=cart, product=product, id=cart_id)
     cart_item.delete()
   except:
     pass
