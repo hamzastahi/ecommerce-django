@@ -1,5 +1,6 @@
+from tkinter import CASCADE
 from django.db import models
-
+from django.contrib.auth.models import User
 from store.models import Product, Variation
 
 # Create your models here.
@@ -13,7 +14,8 @@ class Cart(models.Model):
 
 class CartItem(models.Model):
   product = models.ForeignKey(Product, on_delete=models.CASCADE)
-  cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
+  cart = models.ForeignKey(Cart, on_delete=models.CASCADE, null=True)
+  user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
   quantity = models.IntegerField()
   variations = models.ManyToManyField(Variation, blank=True)
 

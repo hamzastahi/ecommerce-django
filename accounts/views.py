@@ -3,9 +3,10 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib import auth
-
+from carts.views import get_session_key
 
 from accounts.forms import RegistrationForm
+from carts.models import Cart, CartItem
 
 # Create your views here.
 
@@ -49,8 +50,15 @@ def login(request):
     user = auth.authenticate(username=username, password=password)
 
     if user != None:
+      # get existing cart items before login !
+      cart = Cart.objects.get(cart_id=get_session_key(request))
+      cart_items = CartItem.objects.filter(cart=cart)
       auth.login(request, user)
-      return redirect('home')
+      if cart_items.exists:
+        for cart_item in cart_items:
+          cart_item.user = user
+          cart_item.save()
+      return redirect('checkout')
     else:
       messages.error(request, 'Invalid Credentials')
       return redirect('login')
